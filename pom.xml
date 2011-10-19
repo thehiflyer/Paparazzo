@@ -1,12 +1,37 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>se.hiflyer</groupId>
 	<artifactId>paparazzo</artifactId>
 	<packaging>jar</packaging>
 	<version>0.1-SNAPSHOT</version>
-	<name>Paparazzo - a star search</name>
+
+	<name>Paparazzo</name>
+	<description>A star search for java with low impact</description>
 	<url>https://github.com/thehiflyer/Paparazzo</url>
+
+	<licenses>
+		<license>
+			<name>The MIT License (MIT)</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<id>hiflyer</id>
+			<name>Per Malmén</name>
+			<email>per.malmen@gmail.com</email>
+		</developer>
+	</developers>
+
+	<scm>
+		<connection>scm:git:ssh://git@github.com:thehiflyer/Paparazzo.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com:thehiflyer/Paparazzo.git</developerConnection>
+	</scm>
+
 	<build>
 		<plugins>
 			<plugin>
