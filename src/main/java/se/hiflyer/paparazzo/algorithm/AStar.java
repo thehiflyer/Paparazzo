@@ -31,7 +31,7 @@ public class AStar<T> {
 				return (int) (getFScore(o1, gScore, hScore) - ((getFScore(o2, gScore, hScore))));
 			}
 		};
-		Set<T> openSet = new TreeSet<T>(nodeComparator);
+		Queue<T> openSet = new PriorityQueue<T>(10, nodeComparator);
 		Map<T, T> cameFrom = new HashMap<T, T>();
 
 
@@ -40,7 +40,7 @@ public class AStar<T> {
 		openSet.add(start);
 
 		while (!openSet.isEmpty()) {
-			T x = removeBestCandidate(openSet);
+			T x = openSet.poll();
 			if (x.equals(goal)) {
 				Path<T> path = reconstructPath(cameFrom, cameFrom.get(goal));
 				path.add(x);
@@ -87,15 +87,5 @@ public class AStar<T> {
 		} else {
 			return new SimplePath<T>(currentNode);
 		}
-	}
-
-	private T removeBestCandidate(Set<T> openSet) {
-		T x = getBestCandidate(openSet);
-		openSet.remove(x);
-		return x;
-	}
-
-	private T getBestCandidate(Iterable<T> openSet) {
-		return openSet.iterator().next();
 	}
 }
