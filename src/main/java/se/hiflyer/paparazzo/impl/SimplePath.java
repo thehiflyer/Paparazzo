@@ -8,7 +8,7 @@ import java.util.List;
 
 public class SimplePath<T> implements Path<T> {
 
-	List<T> nodes = new LinkedList<>();
+	List<T> nodes = new LinkedList<T>();
 
 	public SimplePath(T currentNode) {
 		nodes.add(currentNode);

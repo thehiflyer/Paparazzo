@@ -21,9 +21,9 @@ public class AStar<T> {
 	}
 
 	public Path<T> search(T start, T goal) {
-		Set<T> closedSet = new HashSet<>();
-		final Map<T, Double> gScore = new HashMap<>();
-		final Map<T, Double> hScore = new HashMap<>();
+		Set<T> closedSet = new HashSet<T>();
+		final Map<T, Double> gScore = new HashMap<T, Double>();
+		final Map<T, Double> hScore = new HashMap<T, Double>();
 
 		Comparator<T> nodeComparator = new Comparator<T>() {
 			@Override
@@ -31,8 +31,8 @@ public class AStar<T> {
 				return (int) (getFScore(o1, gScore, hScore) - ((getFScore(o2, gScore, hScore))));
 			}
 		};
-		Set<T> openSet = new TreeSet<>(nodeComparator);
-		Map<T, T> cameFrom = new HashMap<>();
+		Set<T> openSet = new TreeSet<T>(nodeComparator);
+		Map<T, T> cameFrom = new HashMap<T, T>();
 
 
 		gScore.put(start, 0.0);
