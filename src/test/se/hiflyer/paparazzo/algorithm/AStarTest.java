@@ -1,19 +1,23 @@
 package se.hiflyer.paparazzo.algorithm;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.*;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Table;
 import org.junit.Test;
 import se.hiflyer.paparazzo.impl.Paths;
-import se.hiflyer.paparazzo.interfaces.*;
+import se.hiflyer.paparazzo.interfaces.DistanceCalculator;
+import se.hiflyer.paparazzo.interfaces.HeuristicEstimator;
+import se.hiflyer.paparazzo.interfaces.NeighbourLookup;
+import se.hiflyer.paparazzo.interfaces.Path;
 import se.mockachino.CallHandler;
 import se.mockachino.MethodCall;
 
 import java.util.Iterator;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static se.mockachino.Mockachino.mock;
 import static se.mockachino.Mockachino.when;
 import static se.mockachino.matchers.Matchers.any;
@@ -88,7 +92,7 @@ public class AStarTest {
 	@Test
 	public void biggerMap() throws Exception {
 		final Table<Integer, Integer, Integer> table = HashBasedTable.create();
-		
+
 		table.put(3, 4, 1);
 		table.put(3, 5, 1);
 		table.put(3, 6, 1);
@@ -143,9 +147,9 @@ public class AStarTest {
 		assertFalse(path == Paths.FAIL);
 		Pos last = Iterables.getLast(path);
 		assertEquals(goal, last);
-		for (Pos pos : path) {
-			System.out.println(String.format("%d, %d", pos.col, pos.row));
-		}
+//		for (Pos pos : path) {
+//			System.out.println(String.format("%d, %d", pos.col, pos.row));
+//		}
 	}
 
 	static class Pos {

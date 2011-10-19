@@ -1,8 +1,5 @@
 package se.hiflyer.paparazzo.algorithm;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import se.hiflyer.paparazzo.impl.Paths;
 import se.hiflyer.paparazzo.impl.SimplePath;
 import se.hiflyer.paparazzo.interfaces.DistanceCalculator;
@@ -10,9 +7,7 @@ import se.hiflyer.paparazzo.interfaces.HeuristicEstimator;
 import se.hiflyer.paparazzo.interfaces.NeighbourLookup;
 import se.hiflyer.paparazzo.interfaces.Path;
 
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class AStar<T> {
 	private final HeuristicEstimator<T> estimator;
@@ -26,9 +21,9 @@ public class AStar<T> {
 	}
 
 	public Path<T> search(T start, T goal) {
-		Set<T> closedSet = Sets.newHashSet();
-		final Map<T, Double> gScore = Maps.newHashMap();
-		final Map<T, Double> hScore = Maps.newHashMap();
+		Set<T> closedSet = new HashSet<>();
+		final Map<T, Double> gScore = new HashMap<>();
+		final Map<T, Double> hScore = new HashMap<>();
 
 		Comparator<T> nodeComparator = new Comparator<T>() {
 			@Override
@@ -36,8 +31,8 @@ public class AStar<T> {
 				return (int) (getFScore(o1, gScore, hScore) - ((getFScore(o2, gScore, hScore))));
 			}
 		};
-		Set<T> openSet = Sets.newTreeSet(nodeComparator);
-		Map<T, T> cameFrom = Maps.newHashMap();
+		Set<T> openSet = new TreeSet<>(nodeComparator);
+		Map<T, T> cameFrom = new HashMap<>();
 
 
 		gScore.put(start, 0.0);
@@ -57,13 +52,13 @@ public class AStar<T> {
 					continue;
 				}
 				double tentativeGScore = gScore.get(x) + distanceCalculator.getDistanceBetween(x, y);
-				
+
 				if (!openSet.contains(y)) {
 					gScore.put(y, tentativeGScore);
 					hScore.put(y, estimator.estimate(y, goal));
 					openSet.add(y);
 					cameFrom.put(y, x);
-				} else if (tentativeGScore < gScore.get(y)){
+				} else if (tentativeGScore < gScore.get(y)) {
 					gScore.put(y, tentativeGScore);
 					hScore.put(y, estimator.estimate(y, goal));
 					openSet.remove(y);
@@ -101,6 +96,6 @@ public class AStar<T> {
 	}
 
 	private T getBestCandidate(Iterable<T> openSet) {
-		return Iterables.getFirst(openSet, null);
+		return openSet.iterator().next();
 	}
 }
