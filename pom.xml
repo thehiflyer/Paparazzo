@@ -4,7 +4,7 @@
 	<groupId>se.hiflyer</groupId>
 	<artifactId>paparazzo</artifactId>
 	<packaging>jar</packaging>
-	<version>0.1</version>
+	<version>0.1-SNAPSHOT</version>
 
 	<name>Paparazzo</name>
 	<description>A star search for java with low impact</description>
