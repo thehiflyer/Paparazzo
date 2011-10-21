@@ -7,7 +7,14 @@ import se.hiflyer.paparazzo.interfaces.HeuristicEstimator;
 import se.hiflyer.paparazzo.interfaces.NeighbourLookup;
 import se.hiflyer.paparazzo.interfaces.Path;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Queue;
+import java.util.Set;
+
 
 public class AStar<T> {
 	private final HeuristicEstimator<T> estimator;
