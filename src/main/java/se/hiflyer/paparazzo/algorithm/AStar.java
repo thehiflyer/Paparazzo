@@ -43,7 +43,7 @@ public class AStar<T> {
         while (!openSet.isEmpty()) {
             T x = openSet.poll();
             if (x.equals(goal)) {
-                Path<T> path = reconstructPath(cameFrom, cameFrom.get(goal));
+                SimplePath<T> path = reconstructPath(cameFrom, cameFrom.get(goal));
                 path.add(x);
                 return path;
             }
@@ -72,9 +72,9 @@ public class AStar<T> {
     }
 
 
-    private Path<T> reconstructPath(Map<T, T> cameFrom, T currentNode) {
+    private SimplePath<T> reconstructPath(Map<T, T> cameFrom, T currentNode) {
         if (cameFrom.containsKey(currentNode)) {
-            Path<T> p = reconstructPath(cameFrom, cameFrom.get(currentNode));
+            SimplePath<T> p = reconstructPath(cameFrom, cameFrom.get(currentNode));
             p.add(currentNode);
             return p;
         } else {
