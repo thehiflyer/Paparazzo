@@ -1,5 +1,7 @@
 package se.hiflyer.paparazzo.algorithm;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import se.hiflyer.paparazzo.impl.Paths;
 import se.hiflyer.paparazzo.impl.SimplePath;
 import se.hiflyer.paparazzo.interfaces.DistanceCalculator;
@@ -17,6 +19,7 @@ import java.util.Set;
 
 
 public class AStar<T> {
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private final HeuristicEstimator<T> estimator;
     private final NeighbourLookup<T> neighbourLookup;
     private final DistanceCalculator<T> distanceCalculator;
@@ -42,9 +45,11 @@ public class AStar<T> {
 
         while (!openSet.isEmpty()) {
             T x = openSet.poll();
+            log.debug("Current node is {}, retrieved from the open set", x);
             if (x.equals(goal)) {
                 SimplePath<T> path = reconstructPath(cameFrom, cameFrom.get(goal));
                 path.add(x);
+                log.debug("At goal, reconstructed path is {}", path);
                 return path;
             }
             closedSet.add(x);
@@ -54,12 +59,15 @@ public class AStar<T> {
                 }
                 double tentativeGScore = gScore.get(x) + distanceCalculator.getDistanceBetween(x, y);
 
+                log.debug("Tentative G score for {} is {}", y, tentativeGScore);
                 if (!openSet.contains(y)) {
                     gScore.put(y, tentativeGScore);
                     hScore.put(y, estimator.estimate(y, goal));
+                    log.debug("Adding {} to the open set", y);
                     openSet.add(y);
                     cameFrom.put(y, x);
                 } else if (tentativeGScore < gScore.get(y)) {
+                    log.debug("Tentative score is better than old score {} < {}, updating", tentativeGScore, gScore.get(y));
                     gScore.put(y, tentativeGScore);
                     hScore.put(y, estimator.estimate(y, goal));
                     openSet.remove(y);
@@ -96,7 +104,7 @@ public class AStar<T> {
             return (int) (getFScore(o1, gScore, hScore) - ((getFScore(o2, gScore, hScore))));
         }
 
-        private double getFScore(T o1, Map<T, Double> gScore, Map<T, Double> hScore) {
+        double getFScore(T o1, Map<T, Double> gScore, Map<T, Double> hScore) {
             Double gDouble = gScore.get(o1);
             Double hDouble = hScore.get(o1);
             double g = gDouble != null ? gDouble : 0.0;

@@ -25,4 +25,11 @@ public class SimplePath<T> implements Path<T> {
 	public Iterator<T> iterator() {
 		return nodes.iterator();
 	}
+
+    @Override
+    public String toString() {
+        return "SimplePath{" +
+                "nodes=" + nodes +
+                '}';
+    }
 }
