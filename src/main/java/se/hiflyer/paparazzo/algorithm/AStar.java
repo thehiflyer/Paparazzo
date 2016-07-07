@@ -10,7 +10,6 @@ import se.hiflyer.paparazzo.interfaces.NeighbourLookup;
 import se.hiflyer.paparazzo.interfaces.Path;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 public class AStar<T> {
@@ -26,16 +25,15 @@ public class AStar<T> {
 	}
 
 	public Path<T> search(T start, T goal) {
-		Set<T> closedSet = new HashSet<T>();
-		final Map<T, NodeData> costMap = new HashMap<>();
+		final Map<T, NodeData> nodeDataMap = new HashMap<>();
 
 
-		Comparator<T> nodeComparator = new NodeComparator<T>(costMap);
+		Comparator<T> nodeComparator = new NodeComparator<T>(nodeDataMap);
 		Queue<T> openSet = new PriorityQueue<T>(20, nodeComparator);
 
 
 		double estimate = estimator.estimate(start, goal);
-		costMap.put(start, new NodeData<T>(0.0, estimate, null));
+		nodeDataMap.put(start, new NodeData<T>(0.0, estimate, null));
 
 		openSet.add(start);
 
@@ -43,28 +41,28 @@ public class AStar<T> {
 			T x = openSet.poll();
 			log.debug("Current node is {}, retrieved from the open set", x);
 			if (x.equals(goal)) {
-				SimplePath<T> path = reconstructPath(costMap, goal);
+				SimplePath<T> path = reconstructPath(nodeDataMap, goal);
 				log.debug("At goal, reconstructed path is {}", path);
 
 				return path;
 			}
-			closedSet.add(x);
+			nodeDataMap.get(x).closed = true;
 			for (T y : neighbourLookup.getNeighbours(x)) {
-				if (closedSet.contains(y)) {
+				NodeData nodeData = nodeDataMap.get(y);
+				if (nodeData != null && nodeData.closed) {
 					continue;
 				}
-				double tentativeGScore = costMap.get(x).g + distanceCalculator.getDistanceBetween(x, y);
+				double tentativeGScore = nodeDataMap.get(x).g + distanceCalculator.getDistanceBetween(x, y);
 
 				log.debug("Tentative G score for {} is {}", y, tentativeGScore);
-				if (!openSet.contains(y)) {
-					costMap.put(y, new NodeData<T>(tentativeGScore, estimator.estimate(y, goal), x));
+				if (!openSet.contains(y) || nodeData == null) {
+					nodeDataMap.put(y, new NodeData<T>(tentativeGScore, estimator.estimate(y, goal), x));
 
 					log.debug("Adding {} to the open set", y);
 					openSet.add(y);
 				} else {
-					NodeData nodeData = costMap.get(y);
 					if (tentativeGScore < nodeData.g) {
-						log.debug("Tentative score is better than old score {} < {}, updating", tentativeGScore, costMap.get(y));
+						log.debug("Tentative score is better than old score {} < {}, updating", tentativeGScore, nodeData);
 						nodeData.g = tentativeGScore;
 						nodeData.h =  estimator.estimate(y, goal);
 						nodeData.parent = x;
@@ -78,11 +76,11 @@ public class AStar<T> {
 	}
 
 
-	private SimplePath<T> reconstructPath(Map<T, NodeData> costMap, T currentNode) {
-		T parent = (T) costMap.get(currentNode).parent;
+	private SimplePath<T> reconstructPath(Map<T, NodeData> nodeDataMap, T currentNode) {
+		T parent = (T) nodeDataMap.get(currentNode).parent;
 		if (parent != null) {
 
-			SimplePath<T> p = reconstructPath(costMap, parent);
+			SimplePath<T> p = reconstructPath(nodeDataMap, parent);
 			p.add(currentNode);
 			return p;
 		} else {
@@ -90,31 +88,23 @@ public class AStar<T> {
 		}
 	}
 
-//	private SimplePath<T> reconstructPath(Map<T, NodeData> costMap, T node) {
-//		SimplePath<T> path = new SimplePath<T>();
-//		do {
-//			path.add(node);
-//			node = (T) costMap.get(node).parent;
-//		} while (node != null);
-//		return path;
-//	}
-
 	private static class NodeComparator<T> implements Comparator<T> {
-		private final Map<T, NodeData> gScore;
+		private final Map<T, NodeData> nodeDataMap;
 
 
-		public NodeComparator(Map<T, NodeData> gScore) {
-			this.gScore = gScore;
+		public NodeComparator(Map<T, NodeData> nodeDataMap) {
+			this.nodeDataMap = nodeDataMap;
 		}
 
 		@Override
 		public int compare(T o1, T o2) {
-			return (int) (getFScore(o1, gScore) - ((getFScore(o2, gScore))));
+			return (int) (getFScore(o1, nodeDataMap) - ((getFScore(o2, nodeDataMap))));
 		}
 
-		double getFScore(T o1, Map<T, NodeData> gScore) {
-			Double g = gScore.get(o1).g;
-			Double h = gScore.get(o1).h;
+		double getFScore(T node, Map<T, NodeData> nodeDataMap) {
+			NodeData nodeData = nodeDataMap.get(node);
+			Double g = nodeData.g;
+			Double h = nodeData.h;
 			return g + h;
 		}
 	}
@@ -123,6 +113,7 @@ public class AStar<T> {
 		double g;
 		double h;
 		T parent;
+		boolean closed;
 
 		public NodeData(double g, double h, T parent) {
 			this.g = g;
