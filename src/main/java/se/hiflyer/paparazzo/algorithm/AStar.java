@@ -29,21 +29,23 @@ public class AStar<T> {
 	}
 
 	public Path<T> search(T start, T goal) {
-		final Map<T, NodeData> nodeDataMap = new HashMap<>();
+		final Map<T, NodeData<T>> nodeDataMap = new HashMap<>();
 
 
-		Comparator<T> nodeComparator = new NodeComparator<T>(nodeDataMap);
-		Queue<T> openSet = new PriorityQueue<T>(20, nodeComparator);
+		Comparator<NodeData<T>> nodeComparator = this::compareNodes;
+		Queue<NodeData<T>> openSet = new PriorityQueue<>(20, nodeComparator);
 
 
 		double estimate = estimator.estimate(start, goal);
-		nodeDataMap.put(start, new NodeData<T>(0.0, estimate, null));
+		NodeData<T> nodeDataForStart = new NodeData<>(start, 0.0, estimate, null);
+		nodeDataMap.put(start, nodeDataForStart);
 
-		openSet.add(start);
+		openSet.add(nodeDataForStart);
 		searchListener.addedToOpenSet(start);
 
 		while (!openSet.isEmpty()) {
-			T x = openSet.poll();
+			NodeData<T> nodeDataForX = openSet.poll();
+			T x = nodeDataForX.node;
 			log.debug("Current node is {}, retrieved from the open set", x);
 			if (x.equals(goal)) {
 				SimplePath<T> path = reconstructPath(nodeDataMap, goal);
@@ -51,22 +53,26 @@ public class AStar<T> {
 
 				return path;
 			}
-			NodeData nodeDataForX = nodeDataMap.get(x);
+
 			nodeDataForX.closed = true;
 			searchListener.addedToClosedSet(x);
 			for (T y : neighbourLookup.getNeighbours(x)) {
-				NodeData nodeData = nodeDataMap.get(y);
+
+				NodeData<T> nodeData = nodeDataMap.get(y);
 				if (nodeData != null && nodeData.closed) {
 					continue;
 				}
 				double tentativeGScore = nodeDataForX.g + distanceCalculator.getDistanceBetween(x, y);
-
+				NodeData<T> nodeDataForY = new NodeData<T>(y, 0, 0, null);
 				log.debug("Tentative G score for {} is {}", y, tentativeGScore);
-				if (!openSet.contains(y) || nodeData == null) {
-					nodeDataMap.put(y, new NodeData<T>(tentativeGScore, estimator.estimate(y, goal), x));
+				if (!openSet.contains(nodeDataForY) || nodeData == null) {
+					nodeDataForY.g = tentativeGScore;
+					nodeDataForY.h = estimator.estimate(y, goal);
+					nodeDataForY.parent = x;
+					nodeDataMap.put(y, nodeDataForY);
 					searchListener.updatedGCost(y, tentativeGScore);
 					log.debug("Adding {} to the open set", y);
-					openSet.add(y);
+					openSet.add(nodeDataForY);
 					searchListener.addedToOpenSet(y);
 				} else {
 					if (tentativeGScore < nodeData.g) {
@@ -74,8 +80,8 @@ public class AStar<T> {
 						nodeData.g = tentativeGScore;
 						nodeData.h =  estimator.estimate(y, goal);
 						nodeData.parent = x;
-						openSet.remove(y);
-						openSet.add(y);
+						openSet.remove(nodeData);
+						openSet.add(nodeData);
 						searchListener.updatedGCost(y, tentativeGScore);
 					}
 				}
@@ -84,9 +90,13 @@ public class AStar<T> {
 		return Paths.FAIL;
 	}
 
+	private int compareNodes(NodeData<T> n1, NodeData<T> n2) {
+		return (int) (n1.g + n1.h - ((n2.g + n2.h)));
+	}
 
-	private SimplePath<T> reconstructPath(Map<T, NodeData> nodeDataMap, T currentNode) {
-		T parent = (T) nodeDataMap.get(currentNode).parent;
+
+	private SimplePath<T> reconstructPath(Map<T, NodeData<T>> nodeDataMap, T currentNode) {
+		T parent = nodeDataMap.get(currentNode).parent;
 		if (parent != null) {
 
 			SimplePath<T> p = reconstructPath(nodeDataMap, parent);
@@ -97,37 +107,31 @@ public class AStar<T> {
 		}
 	}
 
-	private static class NodeComparator<T> implements Comparator<T> {
-		private final Map<T, NodeData> nodeDataMap;
-
-
-		public NodeComparator(Map<T, NodeData> nodeDataMap) {
-			this.nodeDataMap = nodeDataMap;
-		}
-
-		@Override
-		public int compare(T o1, T o2) {
-			return (int) (getFScore(o1, nodeDataMap) - ((getFScore(o2, nodeDataMap))));
-		}
-
-		static <T> double getFScore(T node, Map<T, NodeData> nodeDataMap) {
-			NodeData nodeData = nodeDataMap.get(node);
-			Double g = nodeData.g;
-			Double h = nodeData.h;
-			return g + h;
-		}
-	}
 
 	private static class NodeData<T> {
+		T node;
 		double g;
 		double h;
 		T parent;
 		boolean closed;
 
-		public NodeData(double g, double h, T parent) {
+		public NodeData(T node, double g, double h, T parent) {
+			this.node = node;
 			this.g = g;
 			this.h = h;
 			this.parent = parent;
+		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			NodeData<?> nodeData = (NodeData<?>) o;
+			return node.equals(nodeData.node);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(node);
 		}
 	}
 }
