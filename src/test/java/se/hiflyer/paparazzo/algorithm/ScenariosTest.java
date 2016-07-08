@@ -7,10 +7,7 @@ import com.google.common.collect.Iterables;
 import org.junit.Before;
 import org.junit.Test;
 import se.hiflyer.paparazzo.impl.Paths;
-import se.hiflyer.paparazzo.interfaces.DistanceCalculator;
-import se.hiflyer.paparazzo.interfaces.HeuristicEstimator;
-import se.hiflyer.paparazzo.interfaces.NeighbourLookup;
-import se.hiflyer.paparazzo.interfaces.Path;
+import se.hiflyer.paparazzo.interfaces.*;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -18,7 +15,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -29,6 +26,7 @@ public class ScenariosTest {
 	private BufferedImage image;
 	private Node[][] nodes;
 	private AStar<Node> aStar;
+	private Set<Node> closedSet;
 
 
 	@Before
@@ -51,7 +49,24 @@ public class ScenariosTest {
 		System.out.println(wallNodes);
 		System.out.println(size);
 		System.out.println((double) wallNodes / size);
-		aStar = new AStar<>(new NodeHeuristicEstimator(), new NodeNeighbourLookup(), new NodeDistanceCalculator());
+		Set<Node> openSet = new HashSet<>();
+		closedSet = new HashSet<>();
+		aStar = new AStar<>(new NodeHeuristicEstimator(), new NodeNeighbourLookup(), new NodeDistanceCalculator(), new SearchListener<Node>() {
+			@Override
+			public void addedToOpenSet(Node node) {
+				openSet.add(node);
+			}
+
+			@Override
+			public void addedToClosedSet(Node node) {
+				closedSet.add(node);
+			}
+
+			@Override
+			public void updatedGCost(Node node, double cost) {
+
+			}
+		});
 	}
 
 
@@ -80,7 +95,7 @@ public class ScenariosTest {
 		assertTrue(Iterables.contains(search, getNode(5, 18)));
 	}
 
-	private void displaySearch(final Node start, final Node goal, final Path<Node> search) throws InterruptedException {
+	private void displaySearch(final Node start, final Node goal, final Path<Node> search, Collection<Node> searchedNodes) throws InterruptedException {
 		JFrame frame = new JFrame();
 		frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 		frame.setSize(image.getWidth()* 4, image.getHeight()* 4);
@@ -89,6 +104,11 @@ public class ScenariosTest {
 			@Override
 			protected void paintComponent(Graphics g) {
 				g.drawImage(image, 0, 0, image.getWidth() * 4, image.getHeight() * 4, null);
+
+				g.setColor(Color.GRAY);
+				for (Node node : searchedNodes) {
+					drawNode(g, node);
+				};
 
 				g.setColor(Color.red);
 				for (Node node : search) {
@@ -113,6 +133,7 @@ public class ScenariosTest {
 		Node goal = getNode(24, 36);
 		Path<Node> search = aStar.search(start, goal);
 
+
 		assertNotEquals(search, Paths.FAIL);
 		assertTrue(Iterables.contains(search, getNode(31, 78)));
 	}
@@ -128,8 +149,11 @@ public class ScenariosTest {
 	}
 
 	@Test
-	public void impossibleSearch() throws IOException {
-		Path<Node> search = aStar.search(getNode(42, 82), getNode(72, 72));
+	public void impossibleSearch() throws Exception {
+		Node start = getNode(42, 82);
+		Node goal = getNode(72, 72);
+		Path<Node> search = aStar.search(start, goal);
+
 		assertEquals(search, Paths.FAIL);
 	}
 
