@@ -17,6 +17,7 @@ import se.mockachino.MethodCall;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 import static se.mockachino.Mockachino.mock;
@@ -64,22 +65,19 @@ public class AStarTest {
 		dist.put(e, goal, 2.0);
 
 
-		when(distanceCalculator.getDistanceBetween(any(String.class), any(String.class))).thenAnswer(new CallHandler() {
-			@Override
-			public Object invoke(Object o, MethodCall methodCall) throws Throwable {
-				Object[] arguments = methodCall.getArguments();
-				String n1 = (String) arguments[0];
-				String n2 = (String) arguments[1];
-				if (dist.contains(n1, n2)) {
-					return dist.get(n1, n2);
-				} else if (dist.contains(n2, n1)) {
-					return dist.get(n2, n1);
-				}
-				throw new IllegalArgumentException(String.format("Can't find entry for %s and %s", n1, n2));
+		when(distanceCalculator.getDistanceBetween(any(String.class), any(String.class))).thenAnswer((o, methodCall) -> {
+			Object[] arguments = methodCall.getArguments();
+			String n1 = (String) arguments[0];
+			String n2 = (String) arguments[1];
+			if (dist.contains(n1, n2)) {
+				return dist.get(n1, n2);
+			} else if (dist.contains(n2, n1)) {
+				return dist.get(n2, n1);
 			}
+			throw new IllegalArgumentException(String.format("Can't find entry for %s and %s", n1, n2));
 		});
 
-		AStar<String> aStar = new AStar<String>(estimator, neighbourLookup, distanceCalculator);
+		AStar<String> aStar = new AStar<>(estimator, neighbourLookup, distanceCalculator);
 
 		Path<String> path = aStar.search(start, goal);
 		assertFalse(path == Paths.FAIL);
@@ -111,38 +109,21 @@ public class AStarTest {
 		table.put(8, 2, 1);
 		table.put(8, 1, 1);
 
-		HeuristicEstimator<Pos> estimator = new HeuristicEstimator<Pos>() {
-			@Override
-			public double estimate(Pos start, Pos goal) {
-				return Math.abs(start.row - goal.row) + Math.abs(start.col - goal.col);
-			}
-		};
-		NeighbourLookup<Pos> neighbourLookup = new NeighbourLookup<Pos>() {
-			@Override
-			public Iterable<Pos> getNeighbours(Pos p) {
-				List<Pos> neighbours = Lists.newArrayList();
-				neighbours.add(new Pos(p.row - 1, p.col));
-				neighbours.add(new Pos(p.row + 1, p.col));
-				neighbours.add(new Pos(p.row, p.col - 1));
-				neighbours.add(new Pos(p.row, p.col + 1));
+		HeuristicEstimator<Pos> estimator = (start, goal) -> Math.abs(start.row - goal.row) + Math.abs(start.col - goal.col);
+		NeighbourLookup<Pos> neighbourLookup = p -> {
+			List<Pos> neighbours = Lists.newArrayList();
+			neighbours.add(new Pos(p.row - 1, p.col));
+			neighbours.add(new Pos(p.row + 1, p.col));
+			neighbours.add(new Pos(p.row, p.col - 1));
+			neighbours.add(new Pos(p.row, p.col + 1));
 
-				return Iterables.filter(neighbours, new Predicate<Pos>() {
-					@Override
-					public boolean apply(Pos p) {
-						//return p.row >= 0 && p.row < 10 && p.col >= 0 && p.col < 10;
-						Integer integer = table.get(p.row, p.col);
-						boolean walkable = integer == null || integer == 0;
-						return p.row >= 0 && p.row < 10 && p.col >= 0 && p.col < 10 && walkable;
-					}
-				});
-			}
+			return neighbours.stream().filter(p1 -> {
+				Integer integer = table.get(p1.row, p1.col);
+				boolean walkable = integer == null || integer == 0;
+				return p1.row >= 0 && p1.row < 10 && p1.col >= 0 && p1.col < 10 && walkable;
+			}).collect(Collectors.toList());
 		};
-		DistanceCalculator<Pos> distanceCalculator = new DistanceCalculator<Pos>() {
-			@Override
-			public double getDistanceBetween(Pos start, Pos goal) {
-				return Math.abs(start.row - goal.row) + Math.abs(start.col - goal.col);
-			}
-		};
+		DistanceCalculator<Pos> distanceCalculator = (start, goal) -> Math.abs(start.row - goal.row) + Math.abs(start.col - goal.col);
 		AStar<Pos> aStar = new AStar<Pos>(estimator, neighbourLookup, distanceCalculator);
 
 		Pos goal = new Pos(9, 9);
