@@ -1,3 +1,14 @@
+buildscript {
+	repositories {
+		mavenCentral()
+		//Needed only for SNAPSHOT versions
+		//maven { url "http://oss.sonatype.org/content/repositories/snapshots/" }
+	}
+	dependencies {
+		classpath 'info.solidsoft.gradle.pitest:gradle-pitest-plugin:1.1.10'
+	}
+}
+
 plugins {
 	id "com.ofg.uptodate" version "1.1.0"
 	id 'me.champeau.gradle.jmh' version '0.3.0'
@@ -5,6 +16,7 @@ plugins {
 
 apply plugin: 'java'
 apply plugin: 'me.champeau.gradle.jmh'
+apply plugin: "info.solidsoft.pitest"
 
 jmh {
 	include = '.*ManyFalse.*'
@@ -19,6 +31,7 @@ jmh {
 	//jvmArgs = '-XX:+UseG1GC'
 }
 
+group = 'se.hiflyer'
 sourceCompatibility = 1.8
 version = '0.2'
 
