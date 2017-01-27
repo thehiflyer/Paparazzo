@@ -5,6 +5,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
+import com.googlecode.gentyref.TypeToken;
 import org.junit.Test;
 import se.hiflyer.paparazzo.impl.Paths;
 import se.hiflyer.paparazzo.interfaces.DistanceCalculator;
@@ -23,6 +24,9 @@ import static se.mockachino.Mockachino.when;
 import static se.mockachino.matchers.Matchers.any;
 
 public class AStarTest {
+	private TypeToken<HeuristicEstimator<String>> HEURISTIC_TOKEN = new TypeToken<HeuristicEstimator<String>>() {};
+	private TypeToken<NeighbourLookup<String>> NEIBOURLOOKUP_TOKEN = new TypeToken<NeighbourLookup<String>>() {};
+	private TypeToken<DistanceCalculator<String>> DISTANCECALCULATOR_TOKEN = new TypeToken<DistanceCalculator<String>>() {};
 
 	@Test
 	public void findAPath() throws Exception {
@@ -33,14 +37,14 @@ public class AStarTest {
 		String c = "c";
 		String d = "d";
 		String e = "e";
-		HeuristicEstimator<String> estimator = mock(HeuristicEstimator.class);
+		HeuristicEstimator<String> estimator = mock(HEURISTIC_TOKEN);
 		when(estimator.estimate(a, goal)).thenReturn(4.0);
 		when(estimator.estimate(b, goal)).thenReturn(2.0);
 		when(estimator.estimate(c, goal)).thenReturn(4.0);
 		when(estimator.estimate(d, goal)).thenReturn(4.5);
 		when(estimator.estimate(e, goal)).thenReturn(2.0);
 
-		NeighbourLookup<String> neighbourLookup = mock(NeighbourLookup.class);
+		NeighbourLookup<String> neighbourLookup = mock(NEIBOURLOOKUP_TOKEN);
 		when(neighbourLookup.getNeighbours(start)).thenReturn(Lists.newArrayList(a, d));
 		when(neighbourLookup.getNeighbours(a)).thenReturn(Lists.newArrayList(start, b));
 		when(neighbourLookup.getNeighbours(b)).thenReturn(Lists.newArrayList(a, c));
@@ -49,7 +53,7 @@ public class AStarTest {
 		when(neighbourLookup.getNeighbours(e)).thenReturn(Lists.newArrayList(d, goal));
 		when(neighbourLookup.getNeighbours(goal)).thenReturn(Lists.newArrayList(e, c));
 
-		DistanceCalculator<String> distanceCalculator = mock(DistanceCalculator.class);
+		DistanceCalculator<String> distanceCalculator = mock(DISTANCECALCULATOR_TOKEN);
 		final Table<String, String, Double> dist = HashBasedTable.create();
 		dist.put(start, a, 1.5);
 		dist.put(a, b, 2.0);
