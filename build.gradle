@@ -15,6 +15,7 @@ plugins {
 }
 
 apply plugin: 'java'
+apply plugin: 'jacoco'
 apply plugin: 'me.champeau.gradle.jmh'
 apply plugin: "info.solidsoft.pitest"
 
@@ -60,6 +61,8 @@ compileJmhJava {
 	options.forkOptions.executable = javaCompilerExecutable
 	options.warnings = false
 }
+
+jacocoTestReport.dependsOn test
 
 task wrapper(type: Wrapper) {
 	gradleVersion = '2.13'
