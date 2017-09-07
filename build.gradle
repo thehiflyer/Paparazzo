@@ -33,7 +33,7 @@ jmh {
 }
 
 group = 'se.hiflyer'
-sourceCompatibility = 1.8
+sourceCompatibility = JavaVersion.VERSION_1_8
 version = '0.2'
 
 
@@ -65,5 +65,5 @@ compileJmhJava {
 jacocoTestReport.dependsOn test
 
 task wrapper(type: Wrapper) {
-	gradleVersion = '2.13'
+	gradleVersion = '4.1'
 }
