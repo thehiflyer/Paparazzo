@@ -166,7 +166,7 @@ public class ScenariosTest {
 		}
 	}
 
-	private class NodeHeuristicEstimator implements HeuristicEstimator<Node> {
+	private static class NodeHeuristicEstimator implements HeuristicEstimator<Node> {
 		@Override
 		public double estimate(Node start, Node goal) {
 			return Math.abs(start.col - goal.col) + Math.abs(start.row - goal.row);
@@ -198,7 +198,7 @@ public class ScenariosTest {
 		}
 	}
 
-	private class NodeDistanceCalculator implements DistanceCalculator<Node> {
+	private static class NodeDistanceCalculator implements DistanceCalculator<Node> {
 		@Override
 		public double getDistanceBetween(Node x, Node y) {
 			return Math.abs(x.col - y.col) + Math.abs(x.row - y.row);
